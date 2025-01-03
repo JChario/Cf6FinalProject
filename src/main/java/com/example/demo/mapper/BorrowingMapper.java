@@ -5,14 +5,10 @@ import com.example.demo.entity.Borrowing;
 
 public class BorrowingMapper {
     public static BorrowingDTO toDTO(Borrowing borrowing) {
-        if (borrowing == null || borrowing.getUser() == null || borrowing.getBook() == null) {
-            throw new IllegalArgumentException("Borrowing, User, or Book cannot be null");
-        }
-
         return new BorrowingDTO(
                 borrowing.getId(),
-                borrowing.getUser().getId(), // Ensuring User exists
-                borrowing.getBook().getId(), // Ensuring Book exists
+                borrowing.getUser() != null ? borrowing.getUser().getUsername() : "Unknown",
+                borrowing.getBook() != null ? borrowing.getBook().getId() : null,
                 borrowing.getBorrowDate(),
                 borrowing.getReturnDate(),
                 borrowing.getOverdueCharges()

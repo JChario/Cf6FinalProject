@@ -9,4 +9,7 @@ public interface BookService {
     BookDTO getBookById(Long id);
     Book saveBook(Book book);
     void deleteBook(Long id);
+
+    // ✅ Added method to fetch all books for the UI
+    List<Book> getAllBooks();
 }

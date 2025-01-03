@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface BorrowingService {
     List<BorrowingDTO> getAllActiveBorrowings();
-    List<BorrowingDTO> getUserBorrowings(Long userId);
-    BorrowingDTO borrowBook(Long userId, Long bookId);
-    BorrowingDTO returnBook(Long borrowingId);
+    List<BorrowingDTO> getUserBorrowings(String username); // ✅ Matches expected implementation
+    BorrowingDTO borrowBook(String username, Long bookId); // ✅ Matches expected implementation
+    BorrowingDTO returnBook(String username, Long borrowingId); // ✅ Matches expected implementation
 }

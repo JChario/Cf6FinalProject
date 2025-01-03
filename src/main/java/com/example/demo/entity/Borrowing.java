@@ -1,8 +1,9 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "borrowings")
@@ -19,47 +20,41 @@ public class Borrowing {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
-    private LocalDateTime borrowDate;
-    private LocalDateTime returnDate;
+    @Column(name = "borrow_date", nullable = false)
+    private LocalDate borrowDate;
+
+    @Column(name = "return_date")
+    private LocalDate returnDate;
+
+    @Column(name = "overdue_charges", nullable = false)
     private BigDecimal overdueCharges;
 
-    // ✅ Ensure getUser() and getBook() exist
-    public Long getId() {
-        return id;
+    public Borrowing() {}
+
+    public Borrowing(User user, Book book, LocalDate borrowDate, LocalDate returnDate, Double overdueCharges) {
+        this.user = user;
+        this.book = book;
+        this.borrowDate = borrowDate;
+        this.returnDate = returnDate;
+        this.overdueCharges = BigDecimal.valueOf(overdueCharges);
     }
 
-    public User getUser() {
-        return user;
-    }
+    // ✅ Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Book getBook() {
-        return book;
-    }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
-    public LocalDateTime getBorrowDate() {
-        return borrowDate;
-    }
+    public Book getBook() { return book; }
+    public void setBook(Book book) { this.book = book; }
 
-    public LocalDateTime getReturnDate() {
-        return returnDate;
-    }
+    public LocalDate getBorrowDate() { return borrowDate; }
+    public void setBorrowDate(LocalDate borrowDate) { this.borrowDate = borrowDate; }
 
-    public BigDecimal getOverdueCharges() {
-        return overdueCharges;
-    }
+    public LocalDate getReturnDate() { return returnDate; }
+    public void setReturnDate(LocalDate returnDate) { this.returnDate = returnDate; }
 
-    public void setUser(User user) {
-    }
-
-    public void setBook(Book borrowedBook) {
-    }
-
-    public void setBorrowDate(LocalDateTime now) {
-    }
-
-    public void setOverdueCharges(BigDecimal zero) {
-    }
-
-    public void setReturnDate(LocalDateTime now) {
-    }
+    public BigDecimal getOverdueCharges() { return overdueCharges; }
+    public void setOverdueCharges(BigDecimal overdueCharges) { this.overdueCharges = overdueCharges; }
 }

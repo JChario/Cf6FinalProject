@@ -1,6 +1,5 @@
 package com.example.demo.service;
 
-
 import com.example.demo.dto.BorrowingDTO;
 import com.example.demo.entity.Borrowing;
 import com.example.demo.entity.Book;
@@ -9,27 +8,24 @@ import com.example.demo.mapper.BorrowingMapper;
 import com.example.demo.repository.BorrowingRepository;
 import com.example.demo.repository.BookRepository;
 import com.example.demo.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.service.BorrowingService;
 import org.springframework.stereotype.Service;
+
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class BorrowingServiceImpl implements BorrowingService {
     private final BorrowingRepository borrowingRepository;
-    private final UserRepository userRepository;
     private final BookRepository bookRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    public BorrowingServiceImpl(BorrowingRepository borrowingRepository,
-                                UserRepository userRepository,
-                                BookRepository bookRepository) {
+    public BorrowingServiceImpl(BorrowingRepository borrowingRepository, BookRepository bookRepository, UserRepository userRepository) {
         this.borrowingRepository = borrowingRepository;
-        this.userRepository = userRepository;
         this.bookRepository = bookRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -41,56 +37,60 @@ public class BorrowingServiceImpl implements BorrowingService {
     }
 
     @Override
-    public List<BorrowingDTO> getUserBorrowings(Long userId) {
-        return borrowingRepository.findByUserId(userId)
+    public List<BorrowingDTO> getUserBorrowings(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return borrowingRepository.findByUser(user)
                 .stream()
                 .map(BorrowingMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public BorrowingDTO borrowBook(Long userId, Long bookId) {
-        Optional<User> user = userRepository.findById(userId);
-        Optional<Book> book = bookRepository.findById(bookId);
 
-        if (user.isEmpty() || book.isEmpty() || !book.get().getAvailable()) {
-            throw new IllegalArgumentException("Invalid borrow request: User or book unavailable");
+    @Override
+    public BorrowingDTO borrowBook(String username, Long bookId) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+
+        if (!book.getAvailable()) {
+            throw new RuntimeException("Book is not available for borrowing");
         }
 
-        Book borrowedBook = book.get();
-        borrowedBook.setAvailable(false); // Mark book as unavailable
-        bookRepository.save(borrowedBook);
-
         Borrowing borrowing = new Borrowing();
-        borrowing.setUser(user.get());
-        borrowing.setBook(borrowedBook);
-        borrowing.setBorrowDate(LocalDateTime.now());
-        borrowing.setOverdueCharges(BigDecimal.ZERO);
+        borrowing.setUser(user);
+        borrowing.setBook(book);
+        borrowing.setBorrowDate(LocalDate.from(LocalDate.now().atStartOfDay()));
+        borrowing.setReturnDate(null); // Not returned yet
+        borrowing.setOverdueCharges(BigDecimal.valueOf(0.0));
 
-        return BorrowingMapper.toDTO(borrowingRepository.save(borrowing));
+        book.setAvailable(false); // Mark book as unavailable
+
+        borrowingRepository.save(borrowing);
+        bookRepository.save(book);
+
+        return BorrowingMapper.toDTO(borrowing);
     }
 
     @Override
-    public BorrowingDTO returnBook(Long borrowingId) {
-        Optional<Borrowing> borrowingOpt = borrowingRepository.findById(borrowingId);
+    public BorrowingDTO returnBook(String username, Long borrowingId) {
+        Borrowing borrowing = borrowingRepository.findById(borrowingId)
+                .orElseThrow(() -> new RuntimeException("Borrowing record not found"));
 
-        if (borrowingOpt.isEmpty()) {
-            throw new IllegalArgumentException("Borrowing record not found");
+        if (!borrowing.getUser().getUsername().equals(username)) {
+            throw new RuntimeException("You can only return books you borrowed");
         }
 
-        Borrowing borrowing = borrowingOpt.get();
-        borrowing.setReturnDate(LocalDateTime.now());
+        borrowing.setReturnDate(LocalDate.from(LocalDate.now().atStartOfDay()));
+        Book book = borrowing.getBook();
+        book.setAvailable(true); // Mark book as available again
 
-        // Calculate overdue charges
-        if (borrowing.getBorrowDate().plusDays(14).isBefore(borrowing.getReturnDate())) {
-            borrowing.setOverdueCharges(BigDecimal.valueOf(5)); // Example: 5 EUR fine
-        }
+        borrowingRepository.save(borrowing);
+        bookRepository.save(book);
 
-        // Mark book as available again
-        Book returnedBook = borrowing.getBook();
-        returnedBook.setAvailable(true);
-        bookRepository.save(returnedBook);
-
-        return BorrowingMapper.toDTO(borrowingRepository.save(borrowing));
+        return BorrowingMapper.toDTO(borrowing);
     }
 }

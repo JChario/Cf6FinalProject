@@ -5,6 +5,8 @@ import com.example.demo.service.BorrowingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,21 +27,21 @@ public class BorrowingController {
         return ResponseEntity.ok(borrowingService.getAllActiveBorrowings());
     }
 
-    @Operation(summary = "Get user borrowings", description = "Fetches all borrowings associated with a specific user ID")
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<BorrowingDTO>> getUserBorrowings(@PathVariable Long userId) {
-        return ResponseEntity.ok(borrowingService.getUserBorrowings(userId));
+    @Operation(summary = "Get user borrowings", description = "Fetches all borrowings associated with the logged-in user")
+    @GetMapping("/my-borrowings")
+    public ResponseEntity<List<BorrowingDTO>> getUserBorrowings(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(borrowingService.getUserBorrowings(String.valueOf(Long.valueOf(userDetails.getUsername()))));
     }
 
-    @Operation(summary = "Borrow a book", description = "Allows a user to borrow a book")
-    @PostMapping("/{userId}/{bookId}")
-    public ResponseEntity<BorrowingDTO> borrowBook(@PathVariable Long userId, @PathVariable Long bookId) {
-        return ResponseEntity.ok(borrowingService.borrowBook(userId, bookId));
+    @Operation(summary = "Borrow a book", description = "Allows the logged-in user to borrow a book")
+    @PostMapping("/{bookId}")
+    public ResponseEntity<BorrowingDTO> borrowBook(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long bookId) {
+        return ResponseEntity.ok(borrowingService.borrowBook(String.valueOf(Long.valueOf(userDetails.getUsername())), bookId));
     }
 
-    @Operation(summary = "Return a book", description = "Allows a user to return a borrowed book")
+    @Operation(summary = "Return a book", description = "Allows the logged-in user to return a borrowed book")
     @PutMapping("/{borrowingId}/return")
-    public ResponseEntity<BorrowingDTO> returnBook(@PathVariable Long borrowingId) {
-        return ResponseEntity.ok(borrowingService.returnBook(borrowingId));
+    public ResponseEntity<BorrowingDTO> returnBook(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long borrowingId) {
+        return ResponseEntity.ok(borrowingService.returnBook(userDetails.getUsername(), borrowingId));
     }
 }
