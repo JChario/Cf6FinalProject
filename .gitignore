@@ -1,0 +1,75 @@
+# Maven build files
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# IntelliJ IDEA files
+*.iml
+.idea/
+*.ipr
+*.iws
+
+# Eclipse files
+.classpath
+.project
+.settings/
+
+# NetBeans files
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# VS Code
+.vscode/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*.orig
+
+# React build files
+node_modules/
+build/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.*.local
+
+# Coverage directories
+coverage/
+
+# Linting
+.eslintcache
+eslint.report.html
+
+# IDE configuration files
+*.idea/
+
+# JetBrains IDEs
+out/
+
+# Specific files
+*.class
+*.jar
+*.war
+*.ear
+
+# Custom directory exclusions
+logs/
+temp/
